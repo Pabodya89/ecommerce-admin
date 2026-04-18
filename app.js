@@ -10,6 +10,16 @@ const authRoutes = require('./src/routes/auth');
 const app = express();
 
 const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
+const isProduction = process.env.NODE_ENV === 'production';
+const sessionSecret = process.env.SESSION_SECRET || process.env.JWT_SECRET;
+
+if (!sessionSecret) {
+  throw new Error('SESSION_SECRET or JWT_SECRET must be set.');
+}
+
+if (isProduction) {
+  app.set('trust proxy', 1);
+}
 
 // API routes
 app.use('/api', express.json());
@@ -18,11 +28,6 @@ app.use('/api', authRoutes);
 
 // Health check — useful for deployment
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
-
-// Root route helper for quick navigation
-app.get('/', (req, res) => {
-  return res.redirect('/admin/login');
-});
 
 const PORT = process.env.PORT || 3000;
 
@@ -43,36 +48,46 @@ async function startServer() {
     adminJs,
     {
       authenticate: async (email, password) => {
-        const normalizedEmail = normalizeEmail(email);
-        if (!normalizedEmail || !password) return null;
+        try {
+          const normalizedEmail = normalizeEmail(email);
+          if (!normalizedEmail || !password) return null;
 
-        const user = await User.findOne({ where: { email: normalizedEmail } });
-        if (!user) return null;
-        if (!user.isActive) return null;
+          const user = await User.findOne({ where: { email: normalizedEmail } });
+          if (!user) return null;
+          if (!user.isActive) return null;
 
-        const valid = await bcrypt.compare(password, user.password);
-        if (!valid) return null;
+          const valid = await bcrypt.compare(password, user.password);
+          if (!valid) return null;
 
-        return { id: user.id, email: user.email, role: user.role, name: user.name };
+          return { id: user.id, email: user.email, role: user.role, name: user.name };
+        } catch (error) {
+          console.error('Admin login failed:', error);
+          return null;
+        }
       },
       cookieName: 'adminjs_session',
-      cookiePassword: process.env.JWT_SECRET,
+      cookiePassword: sessionSecret,
     },
     null,
     {
-      secret: process.env.JWT_SECRET,
+      secret: sessionSecret,
       name: 'adminjs_session',
       resave: false,
       saveUninitialized: false,
       store: sessionStore,
+      proxy: isProduction,
       cookie: {
         httpOnly: true,
-        secure: false,
+        secure: isProduction,
         sameSite: 'lax',
         maxAge: 24 * 60 * 60 * 1000,
       },
     }
   );
+
+  if (adminJs.options.rootPath !== '/') {
+    app.get('/', (req, res) => res.redirect(adminJs.options.rootPath));
+  }
 
   app.use(adminJs.options.rootPath, adminRouter);
 
@@ -119,7 +134,7 @@ async function startServer() {
 
   app.listen(PORT, () => {
     console.log(`Server:    http://localhost:${PORT}`);
-    console.log(`Admin UI:  http://localhost:${PORT}/admin`);
+    console.log(`Admin UI:  http://localhost:${PORT}${adminJs.options.rootPath}`);
     console.log(`API:       http://localhost:${PORT}/api/login`);
   });
 }
