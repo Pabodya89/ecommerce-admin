@@ -1,13 +1,30 @@
-const { User, Product, Order, OrderItem, Setting } = require('../models');
+const { User, Category, Product, Order } = require('../models');
 
-const { Op } = require('sequelize');
-
-const dashboardHandler = async(request, response, context) => {
+const dashboardHandler = async (request, response, context) => {
     const { currentAdmin } = context;
 
-    if(currentAdmin.role === 'admin') {
-        const [totalUsers, totalOrders, totalProducts, revenue, recentOrders] = await Promise.all([
+    if (!currentAdmin) {
+        return {
+            role: 'guest',
+            stats: {
+                totalUsers: 0,
+                totalCategories: 0,
+                totalOrders: 0,
+                totalProducts: 0,
+                revenue: 0,
+            },
+            recentOrders: [],
+            name: 'Guest',
+            orders: [],
+            totalOrders: 0,
+            totalSpent: 0,
+        };
+    }
+
+    if (currentAdmin?.role === 'admin') {
+        const [totalUsers, totalCategories, totalOrders, totalProducts, revenue, recentOrders] = await Promise.all([
             User.count(),
+            Category.count(),
             Order.count(),
             Product.count(),
             Order.sum('totalAmount'),
@@ -22,6 +39,7 @@ const dashboardHandler = async(request, response, context) => {
             role: 'admin',
             stats: {
                 totalUsers,
+                totalCategories,
                 totalOrders,
                 totalProducts,
                 revenue: revenue || 0,
@@ -30,7 +48,7 @@ const dashboardHandler = async(request, response, context) => {
         };
     }
 
-    const order = await Order.findAll({
+    const orders = await Order.findAll({
         where:  { UserId: currentAdmin.id },
         limit: 5,
         order: [['createdAt', 'DESC']],
@@ -41,10 +59,13 @@ const dashboardHandler = async(request, response, context) => {
         where: { UserId: currentAdmin.id },
     });
 
+    const totalOrders = await Order.count({ where: { UserId: currentAdmin.id } });
+
     return {
         role: 'user',
         name: currentAdmin.name,
         orders,
+        totalOrders,
         totalSpent: totalSpent || 0,
     };
 };

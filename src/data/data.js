@@ -7,7 +7,7 @@ async function data() {
   console.log('Tables created.');
 
   // ── Users ────────────────────────────────
-  const [admin, alice, bob] = await User.bulkCreate([
+  const [, alice, bob] = await User.bulkCreate([
     { name: 'Admin',      email: process.env.ADMIN_EMAIL,  password: await bcrypt.hash(process.env.ADMIN_PASSWORD, 10), role: 'admin' },
     { name: 'Alice Chen', email: 'alice@example.com',      password: await bcrypt.hash('alice1234', 10), role: 'user' },
     { name: 'Bob Smith',  email: 'bob@example.com',        password: await bcrypt.hash('bob1234',   10), role: 'user' },
@@ -32,7 +32,7 @@ async function data() {
   // ── Orders ───────────────────────────────
   const order1 = await Order.create({
     UserId: alice.id, status: 'delivered',
-    totalAmount: 1249.98, taxAmount: 100.00, discountAmount: 0,
+    totalAmount: 1249.98, taxAmount: 100, discountAmount: 0,
     shippingAddress: JSON.stringify({ street: '123 Main St', city: 'New York', country: 'US', zip: '10001' }),
   });
   await OrderItem.bulkCreate([
@@ -43,7 +43,7 @@ async function data() {
 
   const order2 = await Order.create({
     UserId: bob.id, status: 'processing',
-    totalAmount: 1999.99, taxAmount: 160.00, discountAmount: 50.00,
+    totalAmount: 1999.99, taxAmount: 160, discountAmount: 50,
     shippingAddress: JSON.stringify({ street: '456 Oak Ave', city: 'London', country: 'UK', zip: 'SW1A 1AA' }),
   });
   await OrderItem.create({

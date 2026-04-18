@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 
-module.exports = (sequelize) => {
+module.exports = function defineCategory(sequelize) {
     const Category = sequelize.define('Category', {
         name: {
             type: DataTypes.STRING(100),

@@ -18,7 +18,7 @@ const sequelize = new Sequelize(
         } ,
         dialectOptions:
         process.env.NODE_ENV === 'production'
-         ? { ssl: { require: true, rejectUnathorized: false } }
+         ? { ssl: { require: true, rejectUnauthorized: false } }
          : {},
     }
 );
