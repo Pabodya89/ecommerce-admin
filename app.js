@@ -21,14 +21,7 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 // Root route helper for quick navigation
 app.get('/', (req, res) => {
-  res.json({
-    message: 'eCommerce admin backend is running.',
-    adminUrl: '/admin',
-    adminLogin: '/admin/login',
-    loginApi: '/api/login',
-    loginApiNote: 'Use POST /api/login with JSON body. UI login page is /admin/login.',
-    health: '/health',
-  });
+  return res.redirect('/admin/login');
 });
 
 const PORT = process.env.PORT || 3000;

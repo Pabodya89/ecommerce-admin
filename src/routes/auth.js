@@ -8,10 +8,7 @@ const router = express.Router();
 const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
 
 router.get('/login', (req, res) => {
-    res.status(405).json({
-        message: 'Use POST /api/login with email and password in JSON body.',
-        example: { email: 'admin@example.com', password: 'admin123' },
-    });
+    return res.redirect('/admin/login');
 });
 
 router.post('/login', async (req, res) => {
