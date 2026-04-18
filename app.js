@@ -11,10 +11,10 @@ const app = express();
 
 const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
 const isProduction = process.env.NODE_ENV === 'production';
-const sessionSecret = process.env.SESSION_SECRET || process.env.JWT_SECRET;
+const sessionSecret = process.env.SESSION_SECRET || process.env.JWT_SECRET || 'ecommerce-admin-session-secret';
 
-if (!sessionSecret) {
-  throw new Error('SESSION_SECRET or JWT_SECRET must be set.');
+if (!process.env.SESSION_SECRET && !process.env.JWT_SECRET) {
+  console.warn('SESSION_SECRET/JWT_SECRET is missing. Using a fallback secret. Set a real secret in Railway for production.');
 }
 
 if (isProduction) {
