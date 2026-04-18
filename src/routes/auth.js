@@ -6,9 +6,12 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
+const adminRootPath = process.env.ADMIN_ROOT_PATH || '/';
+const adminLoginPath =
+    adminRootPath === '/' ? '/login' : `${adminRootPath.replace(/\/$/, '')}/login`;
 
 router.get('/login', (req, res) => {
-    return res.redirect('/admin/login');
+    return res.redirect(adminLoginPath);
 });
 
 router.post('/login', async (req, res) => {

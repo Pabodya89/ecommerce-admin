@@ -10,6 +10,7 @@ const orderItemResource = require('./resources/orderItemResource');
 const settingResource = require('./resources/settingResource');
 
 const isAdmin = ({ currentAdmin }) => currentAdmin?.role === 'admin';
+const adminRootPath = process.env.ADMIN_ROOT_PATH || '/';
 
 async function buildAdminJS() {
     const AdminJSSequelize = await import('@adminjs/sequelize');
@@ -41,7 +42,7 @@ async function buildAdminJS() {
             logo: false,
             softwareBrothers: false,
         },
-        rootPath: '/admin',
+        rootPath: adminRootPath.startsWith('/') ? adminRootPath : `/${adminRootPath}`,
     });
 }
 
